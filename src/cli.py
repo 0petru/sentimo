@@ -54,6 +54,10 @@ class ConversationUI:
             "by Ungureanu Calin Petru (0petru) 0petru.com",
             style="bold green",
         )
+        self.console.print(
+            "https://github.com/0petru",
+            style="bold green",
+        )
         self.console.print()
 
     def select_or_create_profile(self) -> None:

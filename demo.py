@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Demo script showing the CLI UI and emotion system."""
+"""Demo script showing the new CLI functionality."""
 import os
 import sys
 sys.path.insert(0, 'src')
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from rich.panel import Panel
 from profile import Profile
-from cli import ConversationUI
 from state import classify_emotions
 
 load_dotenv()
@@ -23,13 +21,11 @@ if not API_KEY:
 client = OpenAI(api_key=API_KEY)
 
 def demo():
-    ui = ConversationUI(client=client, model=MODEL, profiles_dir="profiles")
-    ui.print_welcome_banner()
-
-    # Load Luna profile from folder
-    luna = Profile.load("profiles/luna")
-    ui.profile = luna
-    ui.print_status_dashboard()
+    print("=== AI Emotions Simulator - Demo ===\n")
+    
+    # Load Luna profile
+    luna = Profile.load("profiles/luna.json")
+    print(f"Loaded profile: {luna.name}")
     
     # Simulate a conversation
     messages = [
@@ -39,19 +35,21 @@ def demo():
     ]
     
     for user_msg, context in messages:
-        print(f"\n[Demo context: {context}]\n")
-
-        ui.console.rule("Message Sent to Agent")
-        ui.console.print(
-            Panel(user_msg, title="Your Message", border_style="yellow", expand=True)
-        )
-
+        print(f"\n{'='*60}")
+        print(f"User: {user_msg}")
+        print(f"Context: {context}")
+        
+        # Analyze sentiment
         sent, intensity, emotions = classify_emotions(user_msg, client=client, model=MODEL)
-
-        ui.print_analysis(user_msg, sent, intensity, emotions)
+        
+        print(f"\n--- Sentiment Analysis ---")
+        print(f"Sentiment: {sent:.2f} (range: -1.0 to 1.0)")
+        print(f"Intensity: {intensity:.2f}")
+        print(f"Top emotions detected:")
+        for e, v in sorted(emotions.items(), key=lambda x: x[1], reverse=True)[:3]:
+            print(f"  {e}: {v:.3f}")
         
         # Apply emotion update
-        before_emotions = luna.emotions.as_dict().copy()
         luna.emotions.apply_emotion_vector(
             emotions=emotions,
             base_strength=intensity,
@@ -60,27 +58,25 @@ def demo():
             blend=0.2,
         )
         luna.emotions.decay(0.03)
-        after_emotions = luna.emotions.as_dict().copy()
         luna.memory.record_message(user_msg, importance=intensity, tags=["user_message"])
         
-        ui.print_emotion_dashboard(before_emotions, after_emotions)
-
-        agent_answer = ui.generate_emotional_response(user_msg)
-        ui.console.rule("Agent Answer")
-        ui.console.print(
-            Panel(agent_answer, title=f"{luna.name}'s Answer", border_style="green", expand=True)
-        )
-
-        ui.profile = luna
-        ui.print_status_dashboard()
+        # Show emotion changes
+        print(f"\n{luna.name}'s emotions after update:")
+        emotions_state = luna.emotions.as_dict()
+        for e, v in sorted(emotions_state.items(), key=lambda x: x[1], reverse=True):
+            bar = "█" * int(v * 15) + "░" * (15 - int(v * 15))
+            print(f"  {e:10s} {bar} {v:.3f}")
+        
+        # Show memory
+        print(f"\nMemory: {len(luna.memory.short_term.get_all())} short-term, {len(luna.memory.long_term.get_all())} long-term")
     
     # Final state
+    print(f"\n{'='*60}")
     print(f"\nFinal Profile State for {luna.name}:")
-    ui.profile = luna
-    ui.print_status_dashboard()
+    print(luna.summary())
     
-    # Save profile to folder
-    luna.save("profiles/luna")
+    # Save profile
+    luna.save("profiles/luna.json")
     print("Profile saved!")
 
 if __name__ == "__main__":
