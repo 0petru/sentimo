@@ -564,18 +564,18 @@ When long-term memory exceeds the configured limit (default: 100 entries), the s
 
 When a memory is added, its importance is calculated as:
 
-$$\text{importance} = \text{base} \times \text{emotion\_weight} \times \text{recency\_weight}$$
+$$I = b \times w_e \times w_r$$
 
 Where:
 
 - **base** = 0.5 (baseline importance for any memory)
 - **emotion_weight** = Average of emotion vector components (e.g., if message had joy:0.9, sadness:0.1 avg emotions: 0.4, then weight = 0.4)
 
-  $$\text{emotion\_weight} = \frac{1}{6} \sum_{i=1}^{6} e_i$$
+  $$w_e = \frac{1}{6} \sum_{i=1}^{6} e_i$$
 
 - **recency_weight** = Exponential decay by hours since addition
 
-  $$\text{recency\_weight} = e^{-0.1 \times \text{hours\_since\_add}}$$
+  $$w_r = e^{-0.1h}$$
 
 **Example Importance Calculation:**
 
@@ -585,7 +585,7 @@ Where:
 - Time since addition: 2 hours
 - Recency: $e^{-0.1 \times 2} = e^{-0.2} = 0.8187$
 
-$$\text{importance} = 0.5 \times 0.35 \times 0.8187 = 0.143$$
+$$I = 0.5 \times 0.35 \times 0.8187 = 0.143$$
 
 This low importance score (0.143) means it would be a candidate for compression in the next minimization pass.
 
