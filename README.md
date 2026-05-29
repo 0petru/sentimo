@@ -1,4 +1,4 @@
-# AI Emotions Simulator
+# Sentimo - AI Emotions Simulator
 
 A personality and emotion system for AI agents with short/long-term memory, multi-profile management, and realistic emotional dynamics grounded in personality psychology and cognitive science.
 
